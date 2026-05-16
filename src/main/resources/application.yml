@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/comic
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: 127.0.0.1      # Redis 服务器地址（本机）
+      port: 6379           # Redis 默认端口
+      database: 0          # Redis 默认有 16 个库（0-15），我们用 0 号库
+      # password:          # 如果你本地没设密码，这行空着或者删掉就行
+
+  mail:
+    host: smtp.163.com
+    username: m13608699895@163.com
+    password: HVRtjdBRgPmsbhJi
+
+
+server:
+  port: 8081
