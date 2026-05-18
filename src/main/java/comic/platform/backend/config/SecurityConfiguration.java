@@ -53,7 +53,14 @@ public class SecurityConfiguration {
         return http
                 //放开/api/auth/**，别的拦截验证JWT
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/send-code", "/api/auth/reset-password", "/error").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/send-code",
+                                "/api/auth/reset-password",
+                                "/api/comic/**",
+                                "/error")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 //处理跨域
