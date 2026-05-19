@@ -4,6 +4,8 @@ package comic.platform.backend.parser.Impl;
 import comic.platform.backend.parser.RuleParser;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,5 +41,33 @@ public class RegexRuleParser implements RuleParser {
             return ""; // 正则语法错误时容错
         }
         return "";
+    }
+
+    @Override
+    public List<String> parseList(String sourceData, String rule) {
+        List<String> resultList = new ArrayList<>();
+        if (rule == null || rule.isEmpty() || sourceData == null) return resultList;
+
+        try {
+            String regex = rule.substring(1);
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(sourceData);
+
+            while (matcher.find()) {
+                String value;
+                if (matcher.groupCount() >= 1) {
+                    value = matcher.group(1).trim(); // 优先提取括号内的捕获组
+                } else {
+                    value = matcher.group().trim();  // 提取全部
+                }
+
+                if (!value.isEmpty()) {
+                    resultList.add(value);
+                }
+            }
+        } catch (Exception e) {
+            // 容错处理
+        }
+        return resultList;
     }
 }

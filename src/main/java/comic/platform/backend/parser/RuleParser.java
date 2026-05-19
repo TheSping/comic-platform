@@ -2,6 +2,8 @@ package comic.platform.backend.parser;
 
 import org.jsoup.nodes.Element;
 
+import java.util.List;
+
 public interface RuleParser {
     /**
      * 识别前缀
@@ -16,4 +18,9 @@ public interface RuleParser {
      * @return 提取出的具体内容
      */
     String parse(String sourceData, String rule);
+
+    /**
+     * 提取漫画图
+    **/
+    List<String> parseList(String sourceData, String rule);
 }

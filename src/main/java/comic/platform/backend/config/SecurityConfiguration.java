@@ -59,6 +59,7 @@ public class SecurityConfiguration {
                                 "/api/auth/send-code",
                                 "/api/auth/reset-password",
                                 "/api/comic/**",
+                                "/api/proxy/**",
                                 "/error")
                         .permitAll()
                         .anyRequest().authenticated()

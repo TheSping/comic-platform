@@ -4,7 +4,11 @@ import comic.platform.backend.parser.RuleParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JsoupRuleParser implements RuleParser {
@@ -36,4 +40,38 @@ public class JsoupRuleParser implements RuleParser {
             return target.attr(attr).trim();
         }
     }
+
+    @Override
+    public List<String> parseList(String sourceData, String rule) {
+        List<String> result = new ArrayList<>();
+        if (rule == null || rule.trim().isEmpty() || sourceData == null) return result;
+
+        try {
+            String[] parts = rule.split("@");
+            String cssQuery = parts[0];
+            String attr = parts.length > 1 ? parts[1] : "text";
+
+            Document doc = Jsoup.parse(sourceData);
+            Elements elements = doc.select(cssQuery); // 提取所有匹配的节点
+
+            for (Element target : elements) {
+                String value = "";
+                if ("text".equalsIgnoreCase(attr)) {
+                    value = target.text().trim();
+                } else if ("html".equalsIgnoreCase(attr)) {
+                    value = target.html();
+                } else {
+                    value = target.attr(attr).trim();
+                }
+
+                if (!value.isEmpty()) {
+                    result.add(value);
+                }
+            }
+        } catch (Exception e) {
+            // 解析容错，静默返回空列表
+        }
+        return result;
+    }
+
 }

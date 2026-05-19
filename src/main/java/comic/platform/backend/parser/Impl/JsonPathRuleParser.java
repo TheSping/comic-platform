@@ -1,7 +1,11 @@
 package comic.platform.backend.parser.Impl;
 
+import com.jayway.jsonpath.JsonPath;
 import comic.platform.backend.parser.RuleParser;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JsonPathRuleParser implements RuleParser {
@@ -23,5 +27,33 @@ public class JsonPathRuleParser implements RuleParser {
         } catch (Exception e) {
             return ""; // 解析失败容错
         }
+    }
+
+    @Override
+    public List<String> parseList(String sourceData, String rule) {
+        List<String> resultList = new ArrayList<>();
+        if (rule == null || rule.isEmpty() || sourceData == null) return resultList;
+
+        try {
+            // JsonPath.read 直接读取
+            Object result = JsonPath.read(sourceData, rule);
+
+            if (result != null) {
+                // 如果 JsonPath 提取出来的是一个 JSON 数组
+                if (result instanceof List) {
+                    for (Object obj : (List<?>) result) {
+                        if (obj != null) {
+                            resultList.add(obj.toString().trim());
+                        }
+                    }
+                } else {
+                    // 如果提取出来只有单个字符串，也包装成 List 返回
+                    resultList.add(result.toString().trim());
+                }
+            }
+        } catch (Exception e) {
+            // 容错处理
+        }
+        return resultList;
     }
 }
