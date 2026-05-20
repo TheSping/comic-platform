@@ -1,11 +1,9 @@
-package comic.platform.backend.controller;
+package comic.platform.backend.module.auth;
 
 import comic.platform.backend.entity.RestBean;
-import comic.platform.backend.service.AuthService;
 import comic.platform.backend.util.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

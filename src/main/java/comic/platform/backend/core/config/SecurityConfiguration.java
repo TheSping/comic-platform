@@ -1,8 +1,7 @@
-package comic.platform.backend.config;
+package comic.platform.backend.core.config;
 
 import comic.platform.backend.entity.RestBean;
-import comic.platform.backend.filter.JwtAuthenticationFilter;
-import comic.platform.backend.util.JwtUtils;
+import comic.platform.backend.core.filter.JwtAuthenticationFilter;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,9 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,7 +22,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 
 @Configuration
@@ -60,6 +56,7 @@ public class SecurityConfiguration {
                                 "/api/auth/reset-password",
                                 "/api/comic/**",
                                 "/api/proxy/**",
+                                "/api/source/**",
                                 "/error")
                         .permitAll()
                         .anyRequest().authenticated()

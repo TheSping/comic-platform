@@ -1,4 +1,4 @@
-package comic.platform.backend.service;
+package comic.platform.backend.module.user;
 
 import comic.platform.backend.entity.dto.UpdateProfileDTO;
 import comic.platform.backend.entity.vo.UserVo;

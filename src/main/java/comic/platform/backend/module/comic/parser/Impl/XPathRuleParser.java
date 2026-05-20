@@ -1,6 +1,6 @@
-package comic.platform.backend.parser.Impl;
+package comic.platform.backend.module.comic.parser.Impl;
 
-import comic.platform.backend.parser.RuleParser;
+import comic.platform.backend.module.comic.parser.RuleParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

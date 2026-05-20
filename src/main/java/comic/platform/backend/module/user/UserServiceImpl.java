@@ -1,11 +1,9 @@
-package comic.platform.backend.service.impl;
+package comic.platform.backend.module.user;
 
 import comic.platform.backend.entity.CUser;
 import comic.platform.backend.entity.CUserProfile;
 import comic.platform.backend.entity.dto.UpdateProfileDTO;
 import comic.platform.backend.entity.vo.UserVo;
-import comic.platform.backend.mapper.UserMapper;
-import comic.platform.backend.service.UserService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 

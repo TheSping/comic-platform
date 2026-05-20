@@ -1,9 +1,8 @@
-package comic.platform.backend.controller;
+package comic.platform.backend.module.user;
 
 import comic.platform.backend.entity.RestBean;
 import comic.platform.backend.entity.dto.UpdateProfileDTO;
 import comic.platform.backend.entity.vo.UserVo;
-import comic.platform.backend.service.UserService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,7 +1,7 @@
-package comic.platform.backend.parser.Impl;
+package comic.platform.backend.module.comic.parser.Impl;
 
 
-import comic.platform.backend.parser.RuleParser;
+import comic.platform.backend.module.comic.parser.RuleParser;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

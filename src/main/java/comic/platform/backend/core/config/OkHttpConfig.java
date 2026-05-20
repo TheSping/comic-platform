@@ -1,4 +1,4 @@
-package comic.platform.backend.config;
+package comic.platform.backend.core.config;
 
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;

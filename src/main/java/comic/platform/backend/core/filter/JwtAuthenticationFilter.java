@@ -1,4 +1,4 @@
-package comic.platform.backend.filter;
+package comic.platform.backend.core.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import comic.platform.backend.util.JwtUtils;

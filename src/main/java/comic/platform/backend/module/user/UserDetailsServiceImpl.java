@@ -1,7 +1,6 @@
-package comic.platform.backend.service.impl;
+package comic.platform.backend.module.user;
 
 import comic.platform.backend.entity.CUser;
-import comic.platform.backend.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

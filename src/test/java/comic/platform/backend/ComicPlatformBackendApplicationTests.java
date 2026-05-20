@@ -2,8 +2,8 @@ package comic.platform.backend;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import comic.platform.backend.entity.ComicSource;
-import comic.platform.backend.mapper.ComicSourceMapper;
-import comic.platform.backend.parser.ParserEngine;
+import comic.platform.backend.module.comic.ComicSourceMapper;
+import comic.platform.backend.module.comic.parser.ParserEngine;
 import comic.platform.backend.service.NetworkService;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;

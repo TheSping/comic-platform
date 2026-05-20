@@ -1,7 +1,5 @@
-package comic.platform.backend.service;
+package comic.platform.backend.module.auth;
 
-import comic.platform.backend.entity.RestBean;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.RequestParam;
 
 public interface AuthService {

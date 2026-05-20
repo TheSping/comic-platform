@@ -1,4 +1,4 @@
-package comic.platform.backend.parser;
+package comic.platform.backend.module.comic.parser;
 
 import org.jsoup.nodes.Element;
 

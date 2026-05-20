@@ -1,8 +1,7 @@
-package comic.platform.backend.service.impl;
+package comic.platform.backend.module.auth;
 
 import comic.platform.backend.entity.CUser;
-import comic.platform.backend.mapper.UserMapper;
-import comic.platform.backend.service.AuthService;
+import comic.platform.backend.module.user.UserMapper;
 import comic.platform.backend.util.JwtUtils;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
