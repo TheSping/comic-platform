@@ -19,14 +19,11 @@ public class JsonPathRuleParser implements RuleParser {
 
     @Override
     public String parse(String sourceData, String rule) {
-        try {
-            // 使用 JsonPath 解析 JSON 字符串
-            // 例如 rule 是 "$.data.bookList[0].name"
-            Object result = com.jayway.jsonpath.JsonPath.read(sourceData, rule);
-            return result != null ? result.toString() : "";
-        } catch (Exception e) {
-            return ""; // 解析失败容错
-        }
+        // 使用 JsonPath 解析 JSON 字符串
+        // 例如 rule 是 "$.data.bookList[0].name"
+        Object result = com.jayway.jsonpath.JsonPath.read(sourceData, rule);
+        return result != null ? result.toString() : "";
+
     }
 
     @Override
@@ -34,26 +31,23 @@ public class JsonPathRuleParser implements RuleParser {
         List<String> resultList = new ArrayList<>();
         if (rule == null || rule.isEmpty() || sourceData == null) return resultList;
 
-        try {
-            // JsonPath.read 直接读取
-            Object result = JsonPath.read(sourceData, rule);
+        // JsonPath.read 直接读取
+        Object result = JsonPath.read(sourceData, rule);
 
-            if (result != null) {
-                // 如果 JsonPath 提取出来的是一个 JSON 数组
-                if (result instanceof List) {
-                    for (Object obj : (List<?>) result) {
-                        if (obj != null) {
-                            resultList.add(obj.toString().trim());
-                        }
+        if (result != null) {
+            // 如果 JsonPath 提取出来的是一个 JSON 数组
+            if (result instanceof List) {
+                for (Object obj : (List<?>) result) {
+                    if (obj != null) {
+                        resultList.add(obj.toString().trim());
                     }
-                } else {
-                    // 如果提取出来只有单个字符串，也包装成 List 返回
-                    resultList.add(result.toString().trim());
                 }
+            } else {
+                // 如果提取出来只有单个字符串，也包装成 List 返回
+                resultList.add(result.toString().trim());
             }
-        } catch (Exception e) {
-            // 容错处理
         }
+
         return resultList;
     }
 }

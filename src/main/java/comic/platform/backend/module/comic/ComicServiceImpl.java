@@ -1,110 +1,135 @@
 package comic.platform.backend.module.comic;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import comic.platform.backend.entity.ComicSource;
 import comic.platform.backend.core.exception.ComicException;
 import comic.platform.backend.module.comic.parser.ParserEngine;
 import comic.platform.backend.service.NetworkService;
+import comic.platform.backend.util.UrlUtils;
 import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 @Service
 @Slf4j
 public class ComicServiceImpl implements ComicService {
 
     @Resource
+    private ComicSourceService comicSourceService;
+    @Resource
     private ComicSourceMapper comicSourceMapper;
     @Resource
     private NetworkService networkService;
     @Resource
     private ParserEngine parserEngine;
+    @Resource(name = "crawlerExecutor")
+    private ExecutorService crawlerExecutor;
 
-    // 工具方法：获取当前测试的默认书源（包子漫画）
-    // 等以后做聚合搜索时，只需要在参数里加一个 sourceId 传过来即可
-    private ComicSource getDefaultSource() {
-        QueryWrapper<ComicSource> wrapper = new QueryWrapper<>();
-        wrapper.eq("source_name", "包子漫画");
-        ComicSource source = comicSourceMapper.selectOne(wrapper);
-        if (source == null) {
-            throw new RuntimeException("数据库中未找到包子漫画书源！");
-        }
-        return source;
-    }
-
-    // 工具方法：处理相对路径，拼成绝对路径
-    private String getAbsoluteUrl(String baseUrl, String path) {
-        if (path == null || path.isEmpty()) return "";
-        if (path.startsWith("http://") || path.startsWith("https://")) {
-            return path; // 已经是绝对路径
-        }
-        // 如果 path 不是以 / 开头，且 baseUrl 不以 / 结尾，补充 /
-        if (!path.startsWith("/") && !baseUrl.endsWith("/")) {
-            return baseUrl + "/" + path;
-        }
-        return baseUrl + path;
-    }
-
+    /**
+     * 搜索页解析
+     */
     @Override
     @SneakyThrows
     public List<Map<String, String>> search(@RequestParam("keyword") String keyword) {
-        ComicSource source = getDefaultSource();
-        // 拼装
-        String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-        String searchPath = source.getRuleSearch().getSearchUrl().replace("{{key}}", encodedKeyword);
-        String targetUrl = getAbsoluteUrl(source.getSourceUrl(), searchPath);
 
-        // 抓取
-        String html = networkService.getHtml(targetUrl);
-        if (html == null || html.isEmpty()) {
-            throw new ComicException(5001, "目标漫画网站无响应或被防爬虫拦截！");
+        List<ComicSource> activeSources = comicSourceService.getAllActiveSourcesFromCache();
+        if (activeSources == null || activeSources.isEmpty()) {
+            throw new ComicException(400, "当前系统没有可用的漫画源，请先在后台配置");
+        }
+        log.info("开始并发搜索关键词: {}，并发线程数: {}", keyword, activeSources.size());
+
+        //为所有启用的书源分发线程，并发处理
+        List<CompletableFuture<List<Map<String, String>>>> futures = activeSources.stream()
+                .map(source -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        String searchPath = UrlUtils.renderUrl(source.getRuleSearch().getSearchUrl(), keyword);
+                        String targetUrl = UrlUtils.resolveUrl(source.getSourceUrl(), searchPath);
+
+                        String html = networkService.getHtml(targetUrl);
+                        if (html == null || html.isEmpty()) return Collections.<Map<String, String>>emptyList();
+
+                        List<Map<String, String>> sourceResult = parserEngine.parseSearchList(html, source.getRuleSearch());
+
+                        if (sourceResult != null) {
+                            for (Map<String, String> item : sourceResult) {
+                                item.put("sourceId", String.valueOf(source.getId()));
+                                item.put("sourceName", source.getSourceName());
+                            }
+                            return sourceResult;
+                        }
+                        return Collections.<Map<String, String>>emptyList();
+
+                    } catch (Exception e) {
+                        log.error("书源 [{}] 搜索异常: {}", source.getSourceName(), e.getMessage());
+                        return Collections.<Map<String, String>>emptyList();
+                    }
+                }, crawlerExecutor))
+                .toList();
+
+        // 等待所有子线程
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        // 遍历汇总
+        List<Map<String, String>> Result = new ArrayList<>();
+        for (CompletableFuture<List<Map<String, String>>> future : futures) {
+            try {
+                Result.addAll(future.get());
+            } catch (Exception e) {
+                log.error("汇总子线程结果出错", e);
+            }
         }
 
-        // 解析
-        List<Map<String, String>> result = parserEngine.parseSearchList(html, source.getRuleSearch());
-        if (result == null || result.isEmpty()) {
-            throw new ComicException(4004, "未找到漫画《" + keyword + "》，或该站规则已失效需更新！");
-        }
-
-        return result;
-
+        return Result;
     }
 
+    /**
+     * 目录页解析
+     */
     @Override
     @SneakyThrows
-    public List<Map<String, String>> getToc(@RequestParam("url") String detailUrl) {
-        ComicSource source = getDefaultSource();
-        String targetUrl = getAbsoluteUrl(source.getSourceUrl(), detailUrl);
+    public List<Map<String, String>> getToc(@RequestParam("url") String detailUrl, Integer sourceId) {
+        ComicSource source = comicSourceService.getActiveSourceByIdFromCache(sourceId);
+        if (source == null) {
+            throw new ComicException(404, "书源不存在或已被禁用");
+        }
+        String targetUrl = UrlUtils.resolveUrl(source.getSourceUrl(), detailUrl);
         String html = networkService.getHtml(targetUrl);
         if (html == null || html.isEmpty()) {
-            throw new ComicException(5001, "目标漫画网站无响应或被防爬虫拦截！");
+            throw new ComicException(500, "目标漫画网站无响应或被防爬虫拦截！");
         }
         List<Map<String, String>> result = parserEngine.parseTocList(html, source.getRuleToc());
         if (result == null || result.isEmpty()) {
-            throw new ComicException(4004, "未找到目录，或该站规则已失效需更新！");
+            throw new ComicException(404, "未找到目录");
         }
         return result;
     }
 
+    /**
+     * 图片页解析
+     */
     @Override
     @SneakyThrows
-    public List<String> getContent(@RequestParam("url") String chapterUrl) {
-        ComicSource source = getDefaultSource();
-        String targetUrl = getAbsoluteUrl(source.getSourceUrl(), chapterUrl);
+    public List<String> getContent(@RequestParam("url") String chapterUrl, Integer sourceId) {
+        ComicSource source = comicSourceService.getActiveSourceByIdFromCache(sourceId);
+        if (source == null) {
+            throw new ComicException(404, "书源不存在或已被禁用");
+        }
+        String targetUrl = UrlUtils.resolveUrl(source.getSourceUrl(), chapterUrl);
         String html = networkService.getHtml(targetUrl);
         if (html == null || html.isEmpty()) {
-            throw new ComicException(5001, "目标漫画网站无响应或被防爬虫拦截！");
+            throw new ComicException(500, "目标漫画网站无响应或被防爬虫拦截！");
         }
         List<String> result = parserEngine.parseContent(html, source.getRuleContent());
         if (result == null || result.isEmpty()) {
-            throw new ComicException(4004, "未找到内容，或该站规则已失效需更新！");
+            throw new ComicException(404, "未找到内容");
         }
         return result;
     }

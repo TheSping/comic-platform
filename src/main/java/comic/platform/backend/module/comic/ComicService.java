@@ -9,7 +9,7 @@ public interface ComicService {
 
     public List<Map<String, String>> search(@RequestParam("keyword") String keyword);
 
-    public List<Map<String, String>> getToc(@RequestParam("url") String detailUrl);
+    public List<Map<String, String>> getToc(@RequestParam("url") String detailUrl,Integer sourceId);
 
-    public List<String> getContent(@RequestParam("url") String chapterUrl);
+    public List<String> getContent(@RequestParam("url") String chapterUrl,Integer sourceId);
 }

@@ -20,26 +20,23 @@ public class RegexRuleParser implements RuleParser {
 
     @Override
     public String parse(String sourceData, String rule) {
-        try {
-            // 清洗前缀，拿到纯正的正则表达式
-            // 例如规则是：  :var picUrl = "(.*?)";
-            String regex = rule.substring(1);
 
-            // 编译正则并匹配
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(sourceData);
+        // 清洗前缀，拿到纯正的正则表达式
+        // 例如规则是：  :var picUrl = "(.*?)";
+        String regex = rule.substring(1);
 
-            if (matcher.find()) {
-                // 如果用户在正则里写了括号 ()，说明他想提取括号里的内容（捕获组 1）
-                if (matcher.groupCount() >= 1) {
-                    return matcher.group(1).trim();
-                }
-                // 否则返回整个匹配到的字符串
-                return matcher.group().trim();
+        // 编译正则并匹配
+        Matcher matcher = Pattern.compile(regex).matcher(sourceData);
+
+        if (matcher.find()) {
+            // 如果用户在正则里写了括号 ()，说明他想提取括号里的内容（捕获组 1）
+            if (matcher.groupCount() >= 1) {
+                return matcher.group(1).trim();
             }
-        } catch (Exception e) {
-            return ""; // 正则语法错误时容错
+            // 否则返回整个匹配到的字符串
+            return matcher.group().trim();
         }
+
         return "";
     }
 
@@ -48,26 +45,22 @@ public class RegexRuleParser implements RuleParser {
         List<String> resultList = new ArrayList<>();
         if (rule == null || rule.isEmpty() || sourceData == null) return resultList;
 
-        try {
-            String regex = rule.substring(1);
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(sourceData);
+        String regex = rule.substring(1);
+        Matcher matcher = Pattern.compile(regex).matcher(sourceData);
 
-            while (matcher.find()) {
-                String value;
-                if (matcher.groupCount() >= 1) {
-                    value = matcher.group(1).trim(); // 优先提取括号内的捕获组
-                } else {
-                    value = matcher.group().trim();  // 提取全部
-                }
-
-                if (!value.isEmpty()) {
-                    resultList.add(value);
-                }
+        while (matcher.find()) {
+            String value;
+            if (matcher.groupCount() >= 1) {
+                value = matcher.group(1).trim(); // 优先提取括号内的捕获组
+            } else {
+                value = matcher.group().trim();  // 提取全部
             }
-        } catch (Exception e) {
-            // 容错处理
+
+            if (!value.isEmpty()) {
+                resultList.add(value);
+            }
         }
+
         return resultList;
     }
 }

@@ -2,6 +2,7 @@ package comic.platform.backend.module.comic;
 
 import comic.platform.backend.entity.ComicSource;
 import comic.platform.backend.entity.RestBean;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,13 +17,13 @@ public class ComicSourceController {
     private final ComicSourceService comicSourceService;
 
     /**
-     * 查：获取所有书源列表
+     * 查：获取所有书源列表（支持按名称模糊搜索）
      * GET /api/source/list
      */
     @GetMapping("/list")
-    public RestBean<List<ComicSource>> list() {
-        List<ComicSource> sourceList = comicSourceService.list();
-        return RestBean.success(sourceList);
+    public RestBean<List<ComicSource>> list(@RequestParam(required = false) String keyword) {
+        List<ComicSource> list = comicSourceService.queryAdminSources(keyword);
+        return RestBean.success(list);
     }
 
     /**
@@ -41,8 +42,8 @@ public class ComicSourceController {
      * 注意：使用 @RequestBody 接收前端传来的 JSON 数据
      */
     @PostMapping
-    public RestBean<String> add(@RequestBody ComicSource source) {
-        boolean success = comicSourceService.save(source);
+    public RestBean<String> add(@Valid @RequestBody ComicSource source) {
+        boolean success = comicSourceService.addSource(source);
         return success ? RestBean.success("添加成功") : RestBean.failure(500, "添加失败");
     }
 
@@ -51,9 +52,8 @@ public class ComicSourceController {
      * PUT /api/source
      */
     @PutMapping
-    public RestBean<String> update(@RequestBody ComicSource source) {
-        // updateById() 会根据传入对象的 id 字段去更新其他非空字段
-        boolean success = comicSourceService.updateById(source);
+    public RestBean<String> update(@Valid @RequestBody ComicSource source) {
+        boolean success = comicSourceService.updateSource(source);
         return success ? RestBean.success("更新成功") : RestBean.failure(500, "更新失败，请检查ID是否存在");
     }
 
@@ -63,7 +63,70 @@ public class ComicSourceController {
      */
     @DeleteMapping("/{id}")
     public RestBean<String> delete(@PathVariable("id") Integer id) {
-        boolean success = comicSourceService.removeById(id);
+        boolean success = comicSourceService.deleteSource(id);
         return success ? RestBean.success("删除成功") : RestBean.failure(500, "删除失败");
+    }
+
+
+    /**
+     * 启用书源
+     * PUT /api/source/1/enable
+     */
+    @PutMapping("/{id}/enable")
+    public RestBean<String> enableSource(@PathVariable("id") Integer id) {
+        boolean success = comicSourceService.enableSource(id);
+        return success ? RestBean.success("书源已启用") : RestBean.failure(500, "启用失败，请检查书源ID");
+    }
+
+    /**
+     * 禁用书源
+     * PUT /api/source/1/disable
+     */
+    @PutMapping("/{id}/disable")
+    public RestBean<String> disableSource(@PathVariable("id") Integer id) {
+        boolean success = comicSourceService.disableSource(id);
+        return success ? RestBean.success("书源已禁用") : RestBean.failure(500, "禁用失败，请检查书源ID");
+    }
+
+    /**
+     * 批量导入书源
+     * POST /api/source/batch
+     */
+    @PostMapping("/batch")
+    public RestBean<String> addBatch(@RequestBody List<ComicSource> sources) {
+        boolean success = comicSourceService.addSourcesBatch(sources);
+        return success ? RestBean.success("批量导入成功") : RestBean.failure(500, "批量导入失败");
+    }
+
+    /**
+     * 批量删除书源
+     * POST /api/source/batch/delete
+     * 注意：虽然按照 REST 语义该用 DELETE，但某些老旧前端框架对 DELETE 请求带 Body 支持不好，
+     * 所以在批量操作时，常用 POST + 动作路径。
+     */
+    @PostMapping("/batch/delete")
+    public RestBean<String> deleteBatch(@RequestBody List<Integer> ids) {
+        boolean success = comicSourceService.deleteSourcesBatch(ids);
+        return success ? RestBean.success("批量删除成功") : RestBean.failure(500, "批量删除失败");
+    }
+
+    /**
+     * 批量启用书源
+     * PUT /api/source/batch/enable
+     */
+    @PutMapping("/batch/enable")
+    public RestBean<String> enableBatch(@RequestBody List<Integer> ids) {
+        boolean success = comicSourceService.enableSourcesBatch(ids);
+        return success ? RestBean.success("批量启用成功") : RestBean.failure(500, "批量启用失败");
+    }
+
+    /**
+     * 批量禁用书源
+     * PUT /api/source/batch/disable
+     */
+    @PutMapping("/batch/disable")
+    public RestBean<String> disableBatch(@RequestBody List<Integer> ids) {
+        boolean success = comicSourceService.disableSourcesBatch(ids);
+        return success ? RestBean.success("批量禁用成功") : RestBean.failure(500, "批量禁用失败");
     }
 }

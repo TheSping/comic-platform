@@ -1,10 +1,12 @@
 package comic.platform.backend.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
+@TableName("c_user_profile")
 public class CUserProfile {
     private Integer id;
     private Integer userId;

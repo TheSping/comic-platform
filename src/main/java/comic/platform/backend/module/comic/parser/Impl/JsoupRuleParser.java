@@ -27,9 +27,8 @@ public class JsoupRuleParser implements RuleParser {
         String cssQuery = parts[0];
         String attr = parts.length > 1 ? parts[1] : "text";
 
-        // 解析 HTML
-        Document doc = Jsoup.parse(sourceData);
-        Element target = doc.selectFirst(cssQuery);
+        // 定位元素
+        Element target = Jsoup.parse(sourceData).selectFirst(cssQuery);
 
         if (target == null) return "";
 
@@ -46,31 +45,27 @@ public class JsoupRuleParser implements RuleParser {
         List<String> result = new ArrayList<>();
         if (rule == null || rule.trim().isEmpty() || sourceData == null) return result;
 
-        try {
-            String[] parts = rule.split("@");
-            String cssQuery = parts[0];
-            String attr = parts.length > 1 ? parts[1] : "text";
+        String[] parts = rule.split("@");
+        String cssQuery = parts[0];
+        String attr = parts.length > 1 ? parts[1] : "text";
 
-            Document doc = Jsoup.parse(sourceData);
-            Elements elements = doc.select(cssQuery); // 提取所有匹配的节点
+        Elements elements = Jsoup.parse(sourceData).select(cssQuery);
 
-            for (Element target : elements) {
-                String value = "";
-                if ("text".equalsIgnoreCase(attr)) {
-                    value = target.text().trim();
-                } else if ("html".equalsIgnoreCase(attr)) {
-                    value = target.html();
-                } else {
-                    value = target.attr(attr).trim();
-                }
-
-                if (!value.isEmpty()) {
-                    result.add(value);
-                }
+        for (Element target : elements) {
+            String value = "";
+            if ("text".equalsIgnoreCase(attr)) {
+                value = target.text().trim();
+            } else if ("html".equalsIgnoreCase(attr)) {
+                value = target.html();
+            } else {
+                value = target.attr(attr).trim();
             }
-        } catch (Exception e) {
-            // 解析容错，静默返回空列表
+
+            if (!value.isEmpty()) {
+                result.add(value);
+            }
         }
+
         return result;
     }
 
