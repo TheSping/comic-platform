@@ -14,10 +14,17 @@ import java.util.List;
 public class JsoupRuleParser implements RuleParser {
     // div#content@text
 
+
+    @Override
+    public int getPriority() {
+        // 设置为最低优先级，作为整条责任链的兜底 (Fallback) 方案
+        return Integer.MAX_VALUE;
+    }
+
     @Override
     public boolean match(String rule) {
-        // 因为它是最常用的，所以只要别人都不管，就默认归Jsoup管
-        return rule != null && !rule.startsWith("$.") && !rule.startsWith("@XPath:");
+        // 直接排在最后，前面都没匹配上就会落到这里。直接无条件兜底。
+        return rule != null && !rule.isEmpty();
     }
 
     @Override

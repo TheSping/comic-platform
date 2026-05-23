@@ -9,21 +9,24 @@ import java.util.List;
 
 @Component
 public class JsonPathRuleParser implements RuleParser {
-    //@Json: 或 $. / $[	JSONPath 表达式	$.data.book.title
+    //@Json: 或 $. / $[  JSONPath 表达式   $.data.book.title
 
     @Override
     public boolean match(String rule) {
-        // 按照文档 1.2 的规范：以 $. 或 $[ 开头的
         return rule != null && (rule.startsWith("$.") || rule.startsWith("$[") || rule.startsWith("@Json:"));
     }
 
     @Override
     public String parse(String sourceData, String rule) {
+        // 如果以 @Json: 开头，截掉前 6 个字符，提取纯正的 JsonPath
+        if (rule != null && rule.startsWith("@Json:")) {
+            rule = rule.substring(6);
+        }
+
         // 使用 JsonPath 解析 JSON 字符串
         // 例如 rule 是 "$.data.bookList[0].name"
-        Object result = com.jayway.jsonpath.JsonPath.read(sourceData, rule);
+        Object result = JsonPath.read(sourceData, rule);
         return result != null ? result.toString() : "";
-
     }
 
     @Override
@@ -31,7 +34,10 @@ public class JsonPathRuleParser implements RuleParser {
         List<String> resultList = new ArrayList<>();
         if (rule == null || rule.isEmpty() || sourceData == null) return resultList;
 
-        // JsonPath.read 直接读取
+        if (rule.startsWith("@Json:")) {
+            rule = rule.substring(6);
+        }
+
         Object result = JsonPath.read(sourceData, rule);
 
         if (result != null) {

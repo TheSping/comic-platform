@@ -23,4 +23,12 @@ public interface RuleParser {
      * 提取漫画图
     **/
     List<String> parseList(String sourceData, String rule);
+
+    /**
+     * 优先级排序（数字越小，越先被匹配）
+     * 默认优先级为 0
+     */
+    default int getPriority() {
+        return 0;
+    }
 }

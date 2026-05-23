@@ -3,17 +3,14 @@ package comic.platform.backend.module.comic.parser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import comic.platform.backend.entity.ComicSource;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -22,23 +19,59 @@ public class ParserEngine {
     // 自动收集所有实现了 RuleParser 接口的 Bean
     private final List<RuleParser> parsers;
 
+    @PostConstruct
+    public void init() {
+        // 在这里进行优先级排序
+        parsers.sort(Comparator.comparingInt(RuleParser::getPriority));
+    }
+
     // Spring 自带的 JSON 神器
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    //解析
+    /**
+     * 执行解析，通过 ## 分隔符串联多个处理步骤，清洁数据
+     */
     public String executeParse(String sourceData,
                                String rule) {
         if (rule == null || rule.isEmpty()) return "";
 
-        // 遍历所有解析器
-        for (RuleParser parser : parsers) {
-            // 只要有一个实现说true，就把数据丢给它去处理
-            if (parser.match(rule)) {
-                return parser.parse(sourceData, rule);
+        // 1. 用 "##" 切分规则管道
+        String[] steps = rule.split("##");
+
+        // 2. 初始化流转数据为原始网页/JSON数据
+        String currentData = sourceData;
+
+        // 3. 依次让数据穿过每一个解析节点
+        for (String stepRule : steps) {
+            // 防御性判断：跳过类似 "rule1####rule2" 中间产生的空段
+            if (stepRule == null || stepRule.isEmpty()) {
+                continue;
+            }
+
+            boolean matched = false;
+            // 遍历所有解析器，寻找能处理当前 stepRule 的实现
+            for (RuleParser parser : parsers) {
+                if (parser.match(stepRule)) {
+                    // 上一个解析器的输出 currentData，作为当前解析器的输入
+                    currentData = parser.parse(currentData, stepRule);
+                    matched = true;
+                    break; // 找到合适的解析器后，进入管道的下一段
+                }
+            }
+
+            // 如果当前这一段规则没有任何解析器认识，报错提示具体是哪一段出了问题
+            if (!matched) {
+                return "无法识别的规则语法: " + stepRule;
+            }
+
+            // 如果中间某一步提取的数据已经为空了，直接阻断管道，提前结束
+            if (currentData == null || currentData.isEmpty()) {
+                return "";
             }
         }
 
-        return "无法识别的规则语法";
+        // 4. 跑完全部管道后，返回最终加工出的字符串
+        return currentData;
     }
 
     /**
@@ -51,17 +84,27 @@ public class ParserEngine {
         if (listRule == null || listRule.isEmpty()) return result;
 
         try {
-            if (listRule.startsWith("$.")) {
+            // 兼容 $. 或 $[ 等常见的 JsonPath 前缀
+            if (listRule.startsWith("$.") || listRule.startsWith("$[")) {
                 // 1. JSON 切割模式：用 JsonPath 读出一个集合
                 List<Object> list = JsonPath.read(sourceData, listRule);
                 for (Object obj : list) {
-                    // 把集合里的每个小对象，重新序列化成 JSON 字符串，喂给后面的解析器
-                    result.add(objectMapper.writeValueAsString(obj));
+                    // 处理 null 的情况，直接跳过以防后续抛出空指针异常
+                    if (obj == null) {
+                        continue;
+                    }
+
+                    // 如果本身就是字符串，说明是从类似 ["a", "b"] 的数组中提取的，直接强制转换
+                    if (obj instanceof String) {
+                        result.add((String) obj);
+                    } else {
+                        // 只有集合里的复杂对象（如 Map/子List），才需要重新序列化成 JSON 字符串
+                        result.add(objectMapper.writeValueAsString(obj));
+                    }
                 }
             } else {
                 // 2. HTML 切割模式：用 Jsoup 切割 DOM 树
-                Document doc = Jsoup.parse(sourceData);
-                Elements elements = doc.select(listRule);
+                Elements elements = Jsoup.parse(sourceData).select(listRule);
                 for (Element el : elements) {
                     // 把每个 DOM 节点变回 HTML 字符串
                     result.add(el.outerHtml());
