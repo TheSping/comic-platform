@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authorization != null && authorization.startsWith("Bearer ")) {
             UserDetails user = jwtUtils.resolveJwt(authorization);
             //如果 user 不为 null，说明 Token 合法、没过期、且不在黑名单中
-            if(user != null) {
+            if(user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 //使用UsernamePasswordAuthenticationToken作为实体，填写相关用户信息
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

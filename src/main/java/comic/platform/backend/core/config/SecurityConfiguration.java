@@ -1,6 +1,6 @@
 package comic.platform.backend.core.config;
 
-import comic.platform.backend.entity.RestBean;
+import comic.platform.backend.core.RestBean;
 import comic.platform.backend.core.filter.JwtAuthenticationFilter;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;

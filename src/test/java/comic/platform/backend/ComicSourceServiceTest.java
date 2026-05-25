@@ -1,5 +1,5 @@
 package comic.platform.backend;
-import comic.platform.backend.entity.ComicSource;
+import comic.platform.backend.module.comic.ComicSource;
 import comic.platform.backend.module.comic.ComicSourceService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package comic.platform.backend.entity;
+package comic.platform.backend.module.comic;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;

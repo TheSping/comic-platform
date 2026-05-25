@@ -2,7 +2,7 @@ package comic.platform.backend.module.comic.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
-import comic.platform.backend.entity.ComicSource;
+import comic.platform.backend.module.comic.ComicSource;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;

@@ -1,7 +1,6 @@
 package comic.platform.backend.module.comic;
 
-import comic.platform.backend.entity.ComicSource;
-import comic.platform.backend.entity.RestBean;
+import comic.platform.backend.core.RestBean;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

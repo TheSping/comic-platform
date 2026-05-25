@@ -1,4 +1,4 @@
-package comic.platform.backend.entity;
+package comic.platform.backend.module.user;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.springframework.boot.autoconfigure.web.ConditionalOnEnabledResourceChain;
 
 @Data
 @Accessors(chain = true)

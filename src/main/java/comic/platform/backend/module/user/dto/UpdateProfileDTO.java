@@ -1,4 +1,4 @@
-package comic.platform.backend.entity.dto;
+package comic.platform.backend.module.user.dto;
 
 import lombok.Data;
 

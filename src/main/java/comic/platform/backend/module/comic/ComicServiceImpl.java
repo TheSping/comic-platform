@@ -1,6 +1,5 @@
 package comic.platform.backend.module.comic;
 
-import comic.platform.backend.entity.ComicSource;
 import comic.platform.backend.core.exception.ComicException;
 import comic.platform.backend.module.comic.parser.ParserEngine;
 import comic.platform.backend.service.NetworkService;
@@ -109,6 +108,12 @@ public class ComicServiceImpl implements ComicService {
         if (result == null || result.isEmpty()) {
             throw new ComicException(404, "未找到目录");
         }
+
+        for (Map<String, String> item : result) {
+            item.put("sourceId", String.valueOf(source.getId()));
+            item.put("sourceName", source.getSourceName());
+        }
+
         return result;
     }
 

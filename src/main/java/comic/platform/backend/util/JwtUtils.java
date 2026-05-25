@@ -6,9 +6,11 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import comic.platform.backend.core.LoginUser;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -27,12 +29,16 @@ public class JwtUtils {
 
     //根据用户信息创建Jwt令牌
     public String createJwt(UserDetails user) {
+        LoginUser loginUser = (LoginUser) user;
+
         Algorithm algorithm = Algorithm.HMAC256(key);
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         calendar.add(Calendar.SECOND, 3600 * 24 * 7);// 7天过期
+
         return JWT.create()
                 .withJWTId(UUID.randomUUID().toString())
+                .withClaim("id", loginUser.getId())
                 .withClaim("name", user.getUsername())  // 配置JWT自定义信息
                 .withClaim("authorities", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                 .withExpiresAt(calendar.getTime())  // 设置过期时间
@@ -52,17 +58,18 @@ public class JwtUtils {
             //对JWT令牌进行验证，看看是否被修改以及是否过期
             DecodedJWT verify = jwtVerifier.verify(token);
             // 判断UUID是否在 Redis 黑名单中
-            if (isInvalid(verify.getId())) {
-                return null;
-            }
-            //获取令牌中内容
+            if (isInvalid(verify.getId())) return null;
+
+            //从Token中掏数据
             Map<String, Claim> claims = verify.getClaims();
-            //重新组装为UserDetails对象，包括用户名、授权信息等
-            return User
-                    .withUsername(claims.get("name").asString())
-                    .password("")
-                    .authorities(claims.get("authorities").asArray(String.class))
-                    .build();
+            Integer userId = claims.get("id").asInt();
+            String username = claims.get("name").asString();
+            String[] authoritiesArray = claims.get("authorities").asArray(String.class);
+            List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(authoritiesArray);
+
+            // 把这三个核心数据重新拼装成 LoginUser，密码置空（解析 Token 时不需要密码）
+            return new LoginUser(userId, username, "", authorities);
+
         } catch (JWTVerificationException e) {
             return null;
         }

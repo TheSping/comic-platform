@@ -1,6 +1,6 @@
 package comic.platform.backend.module.comic;
 
-import comic.platform.backend.entity.RestBean;
+import comic.platform.backend.core.RestBean;
 import jakarta.annotation.Resource;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

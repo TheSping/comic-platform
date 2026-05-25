@@ -1,4 +1,4 @@
-package comic.platform.backend.entity;
+package comic.platform.backend.module.user;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;

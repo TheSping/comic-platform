@@ -1,0 +1,124 @@
+package comic.platform.backend.module.bookshelf;
+
+import comic.platform.backend.core.LoginUser;
+import comic.platform.backend.core.RestBean;
+import comic.platform.backend.module.bookshelf.group.BookshelfGroup;
+import jakarta.annotation.Resource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/bookshelf")
+public class BookshelfController {
+
+    @Resource
+    private BookshelfService bookshelfService;
+
+    private Integer getCurrentUserId() {
+        LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return loginUser.getId();
+    }
+
+    // ================== 书架核心资源 (漫画) ==================
+
+    /**
+     * 获取书架列表 (搜索/分组过滤)
+     */
+    @GetMapping
+    public RestBean<List<Bookshelf>> listComics(
+            @RequestParam(value = "groupId", required = false) Integer groupId,
+            @RequestParam(value = "keyword", required = false) String keyword) {
+        return RestBean.success(bookshelfService.listBookshelf(getCurrentUserId(), groupId, keyword));
+    }
+
+    /**
+     * 添加漫画进书架
+     */
+    @PostMapping
+    public RestBean<String> addComic(@RequestBody Bookshelf bookshelf) {
+        bookshelf.setUserId(getCurrentUserId());
+        bookshelfService.addComic(bookshelf);
+        return RestBean.success("添加成功");
+    }
+
+    /**
+     * 移除漫画
+     */
+    @DeleteMapping("/{id}")
+    public RestBean<String> removeComic(@PathVariable Long id) {
+        bookshelfService.removeById(id);
+        return RestBean.success("移除成功");
+    }
+
+    // ================== 书架周边属性 (进度与移动) ==================
+
+    /**
+     * 保存阅读进度
+     */
+    @PutMapping("/{id}/progress")
+    public RestBean<String> updateProgress(@PathVariable Long id, @RequestBody Bookshelf progressData) {
+        bookshelfService.updateProgress(getCurrentUserId(), id, progressData);
+        return RestBean.success("进度保存成功");
+    }
+
+    /**
+     * 移动漫画至指定分组
+     */
+    @PutMapping("/{id}/group")
+    public RestBean<String> moveComicToGroup(@PathVariable Long id, @RequestParam("groupId") Integer groupId) {
+        Bookshelf updateData = new Bookshelf();
+        updateData.setId(id);
+        updateData.setGroupId(groupId);
+        bookshelfService.updateById(updateData);
+        return RestBean.success("移动成功");
+    }
+
+    // ================== 分组管理 (Group) ==================
+
+    /**
+     * 获取所有分组
+     */
+    @GetMapping("/group")
+    public RestBean<List<BookshelfGroup>> listGroups() {
+        return RestBean.success(bookshelfService.listGroups(getCurrentUserId()));
+    }
+
+    /**
+     * 新建分组
+     */
+    @PostMapping("/group")
+    public RestBean<String> createGroup(@RequestBody BookshelfGroup group) {
+        group.setUserId(getCurrentUserId());
+        bookshelfService.createGroup(group);
+        return RestBean.success("分组创建成功");
+    }
+
+    /**
+     * 更新分组 (包括重命名)
+     */
+    @PutMapping("/group")
+    public RestBean<String> updateGroup(@RequestBody BookshelfGroup group) {
+        bookshelfService.updateGroup(getCurrentUserId(), group);
+        return RestBean.success("分组更新成功");
+    }
+
+    /**
+     * 供拖拽改变分组排序，批量更新排序
+     */
+    @PutMapping("/group/sort")
+    public RestBean<String> updateGroupSort(@RequestBody List<BookshelfGroup> groupList) {
+        bookshelfService.updateGroupSort(getCurrentUserId(), groupList);
+        return RestBean.success("排序保存成功");
+    }
+
+    /**
+     * 删除分组，漫画移至默认分组
+     */
+    @DeleteMapping("/group/{id}")
+    public RestBean<String> deleteGroup(@PathVariable Integer id) {
+        bookshelfService.deleteGroupAndMoveComics(getCurrentUserId(), id);
+        return RestBean.success("分组删除成功，漫画已移至默认分组");
+    }
+}

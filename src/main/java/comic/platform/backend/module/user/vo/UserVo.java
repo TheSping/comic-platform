@@ -1,4 +1,4 @@
-package comic.platform.backend.entity.vo;
+package comic.platform.backend.module.user.vo;
 
 import lombok.Data;
 

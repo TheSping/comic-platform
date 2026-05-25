@@ -1,9 +1,7 @@
 package comic.platform.backend.module.user;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import comic.platform.backend.entity.CUser;
-import comic.platform.backend.entity.CUserProfile;
-import comic.platform.backend.entity.vo.UserVo;
+import comic.platform.backend.module.user.vo.UserVo;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

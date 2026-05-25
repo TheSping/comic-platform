@@ -1,6 +1,7 @@
 package comic.platform.backend.module.auth;
 
-import comic.platform.backend.entity.CUser;
+import comic.platform.backend.core.LoginUser;
+import comic.platform.backend.module.user.CUser;
 import comic.platform.backend.module.user.UserMapper;
 import comic.platform.backend.util.JwtUtils;
 import jakarta.annotation.Resource;
@@ -120,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
             Authentication authenticate = authenticationManager.authenticate(token);
 
             // 获取认证通过的用户信息
-            User user = (User) authenticate.getPrincipal();
+            LoginUser user = (LoginUser) authenticate.getPrincipal();
 
             // 返回 jwt
             return jwtUtils.createJwt(user);

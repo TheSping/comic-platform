@@ -1,6 +1,6 @@
 package comic.platform.backend;
 
-import comic.platform.backend.entity.ComicSource;
+import comic.platform.backend.module.comic.ComicSource;
 import comic.platform.backend.module.comic.ComicService;
 import comic.platform.backend.module.comic.ComicSourceService;
 import comic.platform.backend.module.comic.parser.ParserEngine;
@@ -8,7 +8,6 @@ import comic.platform.backend.service.NetworkService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.boot.test.context.SpringBootTest;

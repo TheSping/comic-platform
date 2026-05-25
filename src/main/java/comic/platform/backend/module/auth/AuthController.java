@@ -1,6 +1,6 @@
 package comic.platform.backend.module.auth;
 
-import comic.platform.backend.entity.RestBean;
+import comic.platform.backend.core.RestBean;
 import comic.platform.backend.util.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;

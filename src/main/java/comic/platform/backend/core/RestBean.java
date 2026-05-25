@@ -1,4 +1,4 @@
-package comic.platform.backend.entity;
+package comic.platform.backend.core;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.JSONWriter;

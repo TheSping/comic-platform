@@ -1,6 +1,6 @@
 package comic.platform.backend.core.exception;
 
-import comic.platform.backend.entity.RestBean;
+import comic.platform.backend.core.RestBean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
