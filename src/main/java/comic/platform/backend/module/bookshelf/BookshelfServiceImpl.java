@@ -3,14 +3,16 @@ package comic.platform.backend.module.bookshelf;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import comic.platform.backend.core.exception.ComicException;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroup;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroupMapper;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroupService;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public class BookshelfServiceImpl extends ServiceImpl<BookshelfMapper, Bookshelf
                 .eq(Bookshelf::getDetailUrl, bookshelf.getDetailUrl());
         //SELECT COUNT(*) FROM user_bookshelf WHERE user_id = ? AND detail_url = ?;
         if (this.count(query) > 0) {
-            throw new RuntimeException("该漫画已在书架中，请勿重复添加");
+            throw new ComicException(400, "该漫画已在书架中，请勿重复添加");
         }
 
         return this.save(bookshelf);
@@ -76,7 +78,7 @@ public class BookshelfServiceImpl extends ServiceImpl<BookshelfMapper, Bookshelf
     @Transactional(rollbackFor = Exception.class) // 开启数据库事务
     public boolean deleteGroupAndMoveComics(Integer userId, Integer groupId) {
         if (groupId == null || groupId == 0) {
-            throw new RuntimeException("默认分组不可删除");
+            throw new ComicException(400, "默认分组不可删除");
         }
 
         // 1. 将该分组下的所有漫画，转移到默认分组 (group_id = 0)
@@ -116,5 +118,28 @@ public class BookshelfServiceImpl extends ServiceImpl<BookshelfMapper, Bookshelf
                 .orderByAsc(BookshelfGroup::getSortOrder);
 
         return groupMapper.selectList(query);
+    }
+
+    @Async("asyncTaskExecutor")//只要调用这个方法，直接扔进 asyncTaskExecutor 线程池里异步跑
+    @Override
+    public void autoSaveProgress(Integer userId, Integer sourceId, String detailUrl, String chapterName, String chapterUrl) {
+        // 根据唯一坐标 (用户 + 书源 + 漫画详情页) 查找书架记录
+        LambdaQueryWrapper<Bookshelf> query = new LambdaQueryWrapper<>();
+        query.eq(Bookshelf::getUserId, userId)
+                .eq(Bookshelf::getSourceId, sourceId)
+                .eq(Bookshelf::getDetailUrl, detailUrl);
+
+        Bookshelf bookshelf = this.getOne(query);
+
+        // 如果记录存在，说明已加入书架，执行静默更新
+        if (bookshelf != null) {
+            LambdaUpdateWrapper<Bookshelf> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(Bookshelf::getId, bookshelf.getId())
+                    .set(Bookshelf::getLastChapterName, chapterName)
+                    .set(Bookshelf::getLastReadChapterUrl, chapterUrl)
+                    .set(Bookshelf::getLastReadTime, LocalDateTime.now());
+
+            this.update(updateWrapper);
+        }
     }
 }

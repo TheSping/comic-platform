@@ -3,6 +3,8 @@ package comic.platform.backend.module.bookshelf;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ public class Bookshelf {
     /**
      * 漫画名称
      */
+    @NotBlank(message = "漫画名称不能为空")
     private String comicName;
 
     /**
@@ -41,13 +44,15 @@ public class Bookshelf {
     private String comicAuthor;
 
     /**
-     * 漫画详情页URL (核心定位)
+     * 漫画详情页URL
      */
+    @NotBlank(message = "漫画详情URL不能为空")
     private String detailUrl;
 
     /**
      * 书源ID
      */
+    @NotNull(message = "书源ID不能为空")
     private Integer sourceId;
 
     /**

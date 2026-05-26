@@ -3,6 +3,7 @@ package comic.platform.backend.module.bookshelf.group;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -26,6 +27,7 @@ public class BookshelfGroup {
     /**
      * 分组名称
      */
+    @NotBlank(message = "分组名称不能为空")
     private String groupName;
 
     /**

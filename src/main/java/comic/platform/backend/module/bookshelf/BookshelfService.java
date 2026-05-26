@@ -30,4 +30,7 @@ public interface BookshelfService extends IService<Bookshelf> {
 
     // 更新阅读进度
     boolean updateProgress(Integer userId, Long bookshelfId, Bookshelf progressData);
+
+    // 调用图片页时，自动更新进度
+    void autoSaveProgress(Integer userId, Integer sourceId, String detailUrl, String chapterName, String chapterUrl);
 }

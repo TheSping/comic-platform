@@ -27,7 +27,6 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
      */
     @PostConstruct
     public void init() {
-        log.info("系统启动：准备加载【已启用】的漫画源到内存缓存...");
         refreshCache();
     }
 

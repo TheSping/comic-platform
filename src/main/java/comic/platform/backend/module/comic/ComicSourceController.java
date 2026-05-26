@@ -38,7 +38,6 @@ public class ComicSourceController {
     /**
      * 增：添加新书源
      * POST /api/source
-     * 注意：使用 @RequestBody 接收前端传来的 JSON 数据
      */
     @PostMapping
     public RestBean<String> add(@Valid @RequestBody ComicSource source) {

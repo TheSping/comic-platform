@@ -1,25 +1,23 @@
 package comic.platform.backend.module.bookshelf;
 
-import comic.platform.backend.core.LoginUser;
 import comic.platform.backend.core.RestBean;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroup;
+import comic.platform.backend.util.SecurityUtils;
 import jakarta.annotation.Resource;
-import org.springframework.security.core.context.SecurityContextHolder;
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookshelf")
+@Validated
 public class BookshelfController {
 
     @Resource
     private BookshelfService bookshelfService;
 
-    private Integer getCurrentUserId() {
-        LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return loginUser.getId();
-    }
 
     // ================== 书架核心资源 (漫画) ==================
 
@@ -30,15 +28,15 @@ public class BookshelfController {
     public RestBean<List<Bookshelf>> listComics(
             @RequestParam(value = "groupId", required = false) Integer groupId,
             @RequestParam(value = "keyword", required = false) String keyword) {
-        return RestBean.success(bookshelfService.listBookshelf(getCurrentUserId(), groupId, keyword));
+        return RestBean.success(bookshelfService.listBookshelf(SecurityUtils.getUserId(), groupId, keyword));
     }
 
     /**
      * 添加漫画进书架
      */
     @PostMapping
-    public RestBean<String> addComic(@RequestBody Bookshelf bookshelf) {
-        bookshelf.setUserId(getCurrentUserId());
+    public RestBean<String> addComic(@RequestBody @Valid Bookshelf bookshelf) {
+        bookshelf.setUserId(SecurityUtils.getUserId());
         bookshelfService.addComic(bookshelf);
         return RestBean.success("添加成功");
     }
@@ -59,7 +57,7 @@ public class BookshelfController {
      */
     @PutMapping("/{id}/progress")
     public RestBean<String> updateProgress(@PathVariable Long id, @RequestBody Bookshelf progressData) {
-        bookshelfService.updateProgress(getCurrentUserId(), id, progressData);
+        bookshelfService.updateProgress(SecurityUtils.getUserId(), id, progressData);
         return RestBean.success("进度保存成功");
     }
 
@@ -82,15 +80,15 @@ public class BookshelfController {
      */
     @GetMapping("/group")
     public RestBean<List<BookshelfGroup>> listGroups() {
-        return RestBean.success(bookshelfService.listGroups(getCurrentUserId()));
+        return RestBean.success(bookshelfService.listGroups(SecurityUtils.getUserId()));
     }
 
     /**
      * 新建分组
      */
     @PostMapping("/group")
-    public RestBean<String> createGroup(@RequestBody BookshelfGroup group) {
-        group.setUserId(getCurrentUserId());
+    public RestBean<String> createGroup(@RequestBody @Valid BookshelfGroup group) {
+        group.setUserId(SecurityUtils.getUserId());
         bookshelfService.createGroup(group);
         return RestBean.success("分组创建成功");
     }
@@ -99,8 +97,8 @@ public class BookshelfController {
      * 更新分组 (包括重命名)
      */
     @PutMapping("/group")
-    public RestBean<String> updateGroup(@RequestBody BookshelfGroup group) {
-        bookshelfService.updateGroup(getCurrentUserId(), group);
+    public RestBean<String> updateGroup(@RequestBody @Valid BookshelfGroup group) {
+        bookshelfService.updateGroup(SecurityUtils.getUserId(), group);
         return RestBean.success("分组更新成功");
     }
 
@@ -108,8 +106,8 @@ public class BookshelfController {
      * 供拖拽改变分组排序，批量更新排序
      */
     @PutMapping("/group/sort")
-    public RestBean<String> updateGroupSort(@RequestBody List<BookshelfGroup> groupList) {
-        bookshelfService.updateGroupSort(getCurrentUserId(), groupList);
+    public RestBean<String> updateGroupSort(@RequestBody @Valid List<BookshelfGroup> groupList) {
+        bookshelfService.updateGroupSort(SecurityUtils.getUserId(), groupList);
         return RestBean.success("排序保存成功");
     }
 
@@ -118,7 +116,7 @@ public class BookshelfController {
      */
     @DeleteMapping("/group/{id}")
     public RestBean<String> deleteGroup(@PathVariable Integer id) {
-        bookshelfService.deleteGroupAndMoveComics(getCurrentUserId(), id);
+        bookshelfService.deleteGroupAndMoveComics(SecurityUtils.getUserId(), id);
         return RestBean.success("分组删除成功，漫画已移至默认分组");
     }
 }

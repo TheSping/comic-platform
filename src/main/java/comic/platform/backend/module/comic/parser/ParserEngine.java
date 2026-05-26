@@ -3,6 +3,7 @@ package comic.platform.backend.module.comic.parser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import comic.platform.backend.module.comic.ComicSource;
+import comic.platform.backend.module.comic.dto.TocResult;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -140,11 +141,14 @@ public class ParserEngine {
      * 解析目录列表 (Toc)
      * 逻辑和搜索列表一模一样，只是提取的字段变成了 章节名 和 章节链接
      */
-    public List<Map<String, String>> parseTocList(String sourceData,
-                                                  ComicSource.RuleToc rule) {
-        List<Map<String, String>> resultList = new ArrayList<>();
+    public TocResult parseTocList(String sourceData,
+                                  ComicSource.RuleToc rule) {
+        TocResult result = new TocResult();
+        List<Map<String, String>> chapters = new ArrayList<>();
+        //切
         List<String> items = splitByRule(sourceData, rule.getList());
 
+        //解析目录内容
         for (String itemData : items) {
             Map<String, String> data = new HashMap<>();
             // 章节名
@@ -152,9 +156,17 @@ public class ParserEngine {
             // 章节地址
             data.put("url", executeParse(itemData, rule.getUrl()));
 
-            resultList.add(data);
+            chapters.add(data);
         }
-        return resultList;
+        result.setChapters(chapters);
+
+        // 提取下一页链接
+        if (rule.getNextPage() != null && !rule.getNextPage().trim().isEmpty()) {
+            String rawNextPage = executeParse(sourceData, rule.getNextPage());
+            result.setNextPageUrl(rawNextPage);
+        }
+
+        return result;
 
     }
 

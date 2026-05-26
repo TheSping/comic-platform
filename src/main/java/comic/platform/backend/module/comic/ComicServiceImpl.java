@@ -1,6 +1,7 @@
 package comic.platform.backend.module.comic;
 
 import comic.platform.backend.core.exception.ComicException;
+import comic.platform.backend.module.comic.dto.TocResult;
 import comic.platform.backend.module.comic.parser.ParserEngine;
 import comic.platform.backend.service.NetworkService;
 import comic.platform.backend.util.UrlUtils;
@@ -73,20 +74,10 @@ public class ComicServiceImpl implements ComicService {
                 }, crawlerExecutor))
                 .toList();
 
-        // 等待所有子线程
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-        // 遍历汇总
-        List<Map<String, String>> Result = new ArrayList<>();
-        for (CompletableFuture<List<Map<String, String>>> future : futures) {
-            try {
-                Result.addAll(future.get());
-            } catch (Exception e) {
-                log.error("汇总子线程结果出错", e);
-            }
-        }
-
-        return Result;
+        return futures.stream()
+                .map(CompletableFuture::join) // 这一步隐式地包含了等待机制，并安全拿出每个线程的 List
+                .flatMap(List::stream)        // 将 List<List<Map>> 瞬间压扁成 List<Map>
+                .toList();
     }
 
     /**
@@ -94,7 +85,7 @@ public class ComicServiceImpl implements ComicService {
      */
     @Override
     @SneakyThrows
-    public List<Map<String, String>> getToc(@RequestParam("url") String detailUrl, Integer sourceId) {
+    public TocResult getToc(@RequestParam("url") String detailUrl, Integer sourceId) {
         ComicSource source = comicSourceService.getActiveSourceByIdFromCache(sourceId);
         if (source == null) {
             throw new ComicException(404, "书源不存在或已被禁用");
@@ -104,12 +95,17 @@ public class ComicServiceImpl implements ComicService {
         if (html == null || html.isEmpty()) {
             throw new ComicException(500, "目标漫画网站无响应或被防爬虫拦截！");
         }
-        List<Map<String, String>> result = parserEngine.parseTocList(html, source.getRuleToc());
-        if (result == null || result.isEmpty()) {
+        // 拿到包含当页章节和下一页的复合对象
+        TocResult result = parserEngine.parseTocList(html, source.getRuleToc());
+        if (result == null || result.getChapters() == null || result.getChapters().isEmpty()) {
             throw new ComicException(404, "未找到目录");
         }
+        // 如果正则没抓到下一页，把它设为 null
+        if (result.getNextPageUrl() == null || result.getNextPageUrl().isEmpty()) {
+            result.setNextPageUrl(null);
+        }
 
-        for (Map<String, String> item : result) {
+        for (Map<String, String> item : result.getChapters()) {
             item.put("sourceId", String.valueOf(source.getId()));
             item.put("sourceName", source.getSourceName());
         }
