@@ -60,6 +60,9 @@ public class ComicSource {
 
         @Schema(description = "详情页或目录页的链接提取规则", example = "a.txtA@href")
         private String detailUrl;
+
+        @Schema(description = "下一页链接规则", example = "a.next@href")
+        private String nextPage;
     }
 
     @Data

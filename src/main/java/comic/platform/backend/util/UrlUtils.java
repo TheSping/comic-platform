@@ -43,7 +43,7 @@ public class UrlUtils {
         if (template == null || !template.contains("{{key}}")) {
             return template;
         }
-        String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.name());
+        String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
         return template.replace("{{key}}", encodedKeyword);
     }
 }

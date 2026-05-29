@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -48,6 +49,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
      * 增加书源、刷新
      */
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean addSource(ComicSource source) {
         boolean success = super.save(source);
         if (success) refreshCache();
@@ -58,6 +60,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
      * 更新书源、刷新
      */
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean updateSource(ComicSource source) {
         boolean success = super.updateById(source);
         if (success) refreshCache();
@@ -68,6 +71,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
      * 删除书源、刷新
      */
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean deleteSource(Integer id) {
         boolean success = super.removeById(id);
         if (success) refreshCache();
@@ -95,6 +99,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
      * 启用书源
      */
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean enableSource(Integer id) {
         boolean success = this.update(
                 new LambdaUpdateWrapper<ComicSource>()
@@ -113,6 +118,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
      * 禁用书源
      */
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean disableSource(Integer id) {
         boolean success = this.update(
                 new LambdaUpdateWrapper<ComicSource>()
@@ -128,6 +134,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
     }
 
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean addSourcesBatch(List<ComicSource> sources) {
         if (sources == null || sources.isEmpty()) return false;
 
@@ -140,6 +147,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
     }
 
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean deleteSourcesBatch(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) return false;
 
@@ -153,6 +161,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
     }
 
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean enableSourcesBatch(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) return false;
 
@@ -169,6 +178,7 @@ public class ComicSourceServiceImpl extends ServiceImpl<ComicSourceMapper, Comic
     }
 
     @Override
+    @CacheEvict(value = {"search", "search_page", "toc", "content"}, allEntries = true)
     public boolean disableSourcesBatch(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) return false;
 

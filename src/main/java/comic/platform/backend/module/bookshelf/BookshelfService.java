@@ -1,5 +1,6 @@
 package comic.platform.backend.module.bookshelf;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroup;
 
@@ -11,7 +12,7 @@ public interface BookshelfService extends IService<Bookshelf> {
     boolean addComic(Bookshelf bookshelf);
 
     // 获取书架内漫画
-    List<Bookshelf> listBookshelf(Integer userId, Integer groupId, String keyword);
+    IPage<Bookshelf> listBookshelf(Integer userId, Integer groupId, String keyword, int page, int size);
 
     // 创建分组
     boolean createGroup(BookshelfGroup group);

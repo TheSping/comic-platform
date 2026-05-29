@@ -59,6 +59,10 @@ public class SecurityConfiguration {
                                 "/api/proxy/**",
                                 "/api/source/**",
                                 "/api/bookshelf/**",
+                                "/doc.html",                // Knife4j UI 页面
+                                "/webjars/**",              // Knife4j 静态资源
+                                "/v3/api-docs/**",          // OpenAPI 3.0 数据接口 (极其重要，用来生成左侧菜单的)
+                                "/swagger-resources/**",    // Swagger 资源
                                 "/error")
                         .permitAll()
                         .anyRequest().authenticated()

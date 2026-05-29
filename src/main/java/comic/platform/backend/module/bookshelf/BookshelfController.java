@@ -1,5 +1,6 @@
 package comic.platform.backend.module.bookshelf;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import comic.platform.backend.core.RestBean;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroup;
 import comic.platform.backend.util.SecurityUtils;
@@ -22,13 +23,19 @@ public class BookshelfController {
     // ================== 书架核心资源 (漫画) ==================
 
     /**
-     * 获取书架列表 (搜索/分组过滤)
+     * 获取书架列表 (搜索/分组过滤) - 已支持分页
      */
     @GetMapping
-    public RestBean<List<Bookshelf>> listComics(
+    public RestBean<IPage<Bookshelf>> listComics(
             @RequestParam(value = "groupId", required = false) Integer groupId,
-            @RequestParam(value = "keyword", required = false) String keyword) {
-        return RestBean.success(bookshelfService.listBookshelf(SecurityUtils.getUserId(), groupId, keyword));
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
+
+        IPage<Bookshelf> bookshelfPage = bookshelfService.listBookshelf(
+                SecurityUtils.getUserId(), groupId, keyword, page, size
+        );
+        return RestBean.success(bookshelfPage);
     }
 
     /**

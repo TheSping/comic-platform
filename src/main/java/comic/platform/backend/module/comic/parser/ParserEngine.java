@@ -3,7 +3,9 @@ package comic.platform.backend.module.comic.parser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import comic.platform.backend.module.comic.ComicSource;
+import comic.platform.backend.module.comic.dto.SearchResult;
 import comic.platform.backend.module.comic.dto.TocResult;
+import comic.platform.backend.util.UrlUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -120,9 +122,11 @@ public class ParserEngine {
     /**
      * 解析搜索列表 (Search)
      */
-    public List<Map<String, String>> parseSearchList(String sourceData,
-                                                     ComicSource.RuleSearch rule) {
-        List<Map<String, String>> resultList = new ArrayList<>();
+    public SearchResult parseSearchList(String sourceData,
+                                        ComicSource.RuleSearch rule,
+                                        String baseUrl) {
+        SearchResult result = new SearchResult();
+        List<Map<String, String>> comics = new ArrayList<>();
         // 将搜索出来的列表切成单个漫画
         List<String> items = splitByRule(sourceData, rule.getList());
 
@@ -130,11 +134,29 @@ public class ParserEngine {
         for (String itemData : items) {
             Map<String, String> data = new HashMap<>();
             data.put("name", executeParse(itemData, rule.getName()));
-            data.put("cover", executeParse(itemData, rule.getCover()));
+            String rawCover = executeParse(itemData, rule.getCover());
+            if (rawCover != null && !rawCover.isEmpty()) {
+                data.put("cover", UrlUtils.resolveUrl(baseUrl, rawCover));
+            }
             data.put("detailUrl", executeParse(itemData, rule.getDetailUrl()));
-            resultList.add(data);
+            comics.add(data);
         }
-        return resultList;
+        result.setComics(comics);
+
+        //提取下一页的url
+        if (rule.getNextPage() != null && !rule.getNextPage().trim().isEmpty()) {
+            String rawNextPage = executeParse(sourceData, rule.getNextPage());
+
+            if (rawNextPage != null && !rawNextPage.isEmpty()) {
+                result.setNextPageUrl(rawNextPage);
+            } else {
+                result.setNextPageUrl(null);
+            }
+        } else {
+            result.setNextPageUrl(null);
+        }
+
+        return result;
     }
 
     /**

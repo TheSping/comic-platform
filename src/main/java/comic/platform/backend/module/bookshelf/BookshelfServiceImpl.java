@@ -2,6 +2,8 @@ package comic.platform.backend.module.bookshelf;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import comic.platform.backend.core.exception.ComicException;
 import comic.platform.backend.module.bookshelf.group.BookshelfGroup;
@@ -38,13 +40,15 @@ public class BookshelfServiceImpl extends ServiceImpl<BookshelfMapper, Bookshelf
     }
 
     @Override
-    public List<Bookshelf> listBookshelf(Integer userId, Integer groupId, String keyword) {
+    public IPage<Bookshelf> listBookshelf(Integer userId, Integer groupId, String keyword, int page, int size) {
         LambdaQueryWrapper<Bookshelf> query = new LambdaQueryWrapper<>();
         query.eq(Bookshelf::getUserId, userId)
                 .eq(groupId != null, Bookshelf::getGroupId, groupId)
                 .like(keyword != null && !keyword.trim().isEmpty(), Bookshelf::getComicName, keyword)
                 .orderByDesc(Bookshelf::getLastReadTime);
-        return this.list(query);
+
+        Page<Bookshelf> pageObj = new Page<>(page, size);
+        return this.page(pageObj, query);
     }
 
     @Override
